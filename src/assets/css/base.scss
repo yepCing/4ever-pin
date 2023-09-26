@@ -1,3 +1,11 @@
+img {
+  vertical-align: bottom;
+}
+ul,
+li {
+  list-style: none;
+}
+
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
   --vt-c-white: #ffffff;
@@ -59,7 +67,7 @@
 }
 
 body {
-  min-height: 100vh;
+  height: 100vh;
   color: var(--color-text);
   background: var(--color-background);
   transition:
