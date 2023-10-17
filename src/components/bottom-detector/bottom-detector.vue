@@ -18,7 +18,7 @@
 
 <script lang="ts" setup>
 import { debounce } from '../../utils'
-import { onMounted, ref, onUnmounted } from 'vue'
+import { onMounted, ref, onBeforeUnmount } from 'vue'
 const props = defineProps({
   loadingMore: {
     type: Boolean,
@@ -31,21 +31,24 @@ const props = defineProps({
   noMore: {
     type: Boolean,
     default: false
+  },
+  queryId: {
+    type: String,
+    required: true
   }
 })
 
 const emit = defineEmits<{
   (e: 'arriveBottom'): void
 }>()
-const element = ref<HTMLElement>(null)
+const element = ref<HTMLElement>()
 
 const listenBottomOut = () => {
   if (props.noMore || props.loadingMore) return
-  let scrollTop = element.value.scrollTop || document.body.scrollTop
-  let clientHeight = element.value.clientHeight
-  let scrollHeight = element.value.scrollHeight
+  let scrollTop = element.value!.scrollTop || document.body.scrollTop
+  let clientHeight = element.value!.clientHeight
+  let scrollHeight = element.value!.scrollHeight
 
-  console.log(scrollTop + clientHeight, scrollHeight - props.distance)
   if (scrollTop + clientHeight >= scrollHeight - props.distance) {
     emit('arriveBottom')
   }
@@ -53,14 +56,14 @@ const listenBottomOut = () => {
 
 let debouceListenBottomOut = debounce(listenBottomOut, 500)
 onMounted(() => {
-  document.querySelector('.scroll').addEventListener('scroll', () => {
+  document.getElementById(props.queryId)!.addEventListener('scroll', () => {
     debouceListenBottomOut()
   })
-  element.value = document.querySelector('.scroll')
+  element.value = document.getElementById(props.queryId) as HTMLElement
 })
 
-onUnmounted(() => {
-  window.removeEventListener('scroll', listenBottomOut, false)
+onBeforeUnmount(() => {
+  document.getElementById(props.queryId)!.removeEventListener('scroll', listenBottomOut, false)
 })
 </script>
 <style scoped>

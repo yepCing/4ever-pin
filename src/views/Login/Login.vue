@@ -11,18 +11,31 @@
 </template>
 
 <script setup lang="ts">
+import { getCurrentInstance } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { RootState } from '../../store/type'
+import type { RootState } from '../../store/type'
+import { SnackBarStatus } from '@/components/snack-bar/snack-bar'
+import type { ComponentInternalInstance } from 'vue'
 const store = useStore<RootState>()
 const router = useRouter()
+const { proxy } = getCurrentInstance() as ComponentInternalInstance
 const handleConnect = async () => {
   try {
     await store.dispatch('initClient')
-    console.log(store.state.expiration)
     router.push('/')
-  } catch (error) {
-    console.log(error)
+  } catch (error: any) {
+    let message = error.message
+    if (typeof error == 'string') {
+      message = error
+    }
+    if (/user rejected/.test(error.message)) {
+      message = 'user rejected'
+    }
+    proxy!.$snackbar({
+      text: message,
+      type: SnackBarStatus.DANGER
+    })
   }
 }
 </script>

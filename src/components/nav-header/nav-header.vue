@@ -53,20 +53,14 @@ const menuList = reactive([
   {
     title: 'Log Out',
     operation: 'logout'
-  },
-  {
-    title: 'Resource Manage',
-    operation: 'resourceManage'
   }
 ])
 
-const handleMenu = (operation) => {
+const handleMenu = (operation: any) => {
   switch (operation) {
     case 'logout':
       localCache.clearCache()
       location.reload()
-      break
-    case 'resourceManage':
       break
     default:
       break

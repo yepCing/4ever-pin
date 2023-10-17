@@ -8,7 +8,9 @@ import router from './router'
 import store from './store'
 
 import { VueClipboard } from '@soerenmartius/vue3-clipboard'
-import SnackBar from './components/snack-bar'
+import snackBar from './components/snack-bar/snack-bar'
+
+import installDirectives from './directives'
 // Vuetify
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
@@ -38,5 +40,6 @@ app.use(store)
 app.use(router)
 app.use(vuetify)
 app.use(VueClipboard)
-app.use(SnackBar)
+app.use(snackBar)
+app.use(installDirectives)
 app.mount('#app')

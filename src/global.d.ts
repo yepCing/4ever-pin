@@ -15,3 +15,8 @@ declare module '*.webm' {
 declare interface Window {
   ethereum: any
 }
+
+declare module 'jazzicon' {
+  const content: any
+  export default content
+}

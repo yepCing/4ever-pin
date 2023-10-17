@@ -1,5 +1,7 @@
-import type { BucketClient, PinningClient } from '4everland-pinning'
-import type { PinInfo, UploadResult } from '4everland-pinning/dist/types/core/type'
+// import type { BucketClient, PinningClient } from '@4everland/upload-pin'
+// import type { PinInfo, UploadResult } from '@4everland/upload-pin'
+import type { BucketClient, PinningClient } from 'upload-pin'
+import type { PinInfo, UploadResult } from 'upload-pin'
 interface TaskParams {
   Bucket: string
   Key: string
@@ -26,9 +28,7 @@ class Task {
     try {
       this.status = 1 //loading...
       this.uploadInstance.progress((e: any) => {
-        console.log(e)
         this.progress = Math.ceil((e.loaded / e.total) * 100)
-        console.log(this.progress)
       })
       const { cid } = await this.uploadInstance.done()
       this.status = 3 // success
@@ -37,6 +37,7 @@ class Task {
       this.status = 4
     } catch (error) {
       this.status = 5 // error
+      throw error
     }
   }
   async abort() {
@@ -68,7 +69,7 @@ class TaskWrapper {
   pushTasks(task: Task) {
     this.tasks.push(task)
   }
-  progressTask() {
+  async progressTask() {
     const uploadingTasks = this.tasks.filter((task) => {
       return task.status == 1
     })
@@ -81,16 +82,12 @@ class TaskWrapper {
     const finalCount = preUploadTasks.length <= fill ? preUploadTasks.length : fill
 
     for (let i = 0; i < finalCount; i++) {
-      this.startTask(preUploadTasks[i])
+      await this.startTask(preUploadTasks[i])
     }
   }
   async startTask(task: Task) {
-    try {
-      await task.done()
-      this.progressTask()
-    } catch (error) {
-      console.log(error)
-    }
+    await task.done()
+    this.progressTask()
   }
 }
 

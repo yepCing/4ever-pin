@@ -1,17 +1,6 @@
 <template>
   <div class="upload-container">
-    <div class="upload-control al-c">
-      <v-btn color="primary" @click="showUploadDialog = true">Upload</v-btn>
-
-      <v-badge dot :content="unsuccessPinList.results.length" color="red">
-        <v-icon
-          class="ml-5 cursor-p"
-          size="24"
-          icon="mdi-upload"
-          @click="handleShowPinning"
-        ></v-icon>
-      </v-badge>
-    </div>
+    <v-btn color="primary" @click="showUploadDialog = true">Upload</v-btn>
 
     <v-dialog v-model="showUploadDialog" width="500">
       <v-card class="pa-5">
@@ -87,61 +76,35 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="showPinningDialog" width="700">
-      <v-card class="pa-5">
-        <div class="al-c mb-5">
-          <div class="fz-18">{{ unsuccessPinList.results.length }} Files is pinning...</div>
-          <v-btn variant="text" :loading="pinningTasksLoading" @click="handleReload">
-            <v-icon icon="mdi-reload"></v-icon>
-          </v-btn>
-        </div>
-        <div style="height: 400px; overflow: auto" class="scroll pa-5">
-          <v-table :hover="true">
-            <thead>
-              <tr>
-                <th class="text-left">Name</th>
-                <th class="text-left">CreateAt</th>
-                <th class="text-left">Status</th>
-                <th class="text-left">Act</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in unsuccessPinList.results" :key="item.requestid">
-                <td>{{ item.pin.name }}</td>
-                <td>{{ item.created }}</td>
-                <td>{{ item.status.toUpperCase() }}</td>
-                <td>
-                  <v-btn variant="text">Repin</v-btn>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
-          <bottom-detector
-            @arriveBottom="getUnsuccessPinList"
-            :loadingMore="loadingMore"
-            :noMore="finished"
-          ></bottom-detector>
-        </div>
-      </v-card>
-    </v-dialog>
-    <div class="uploading-list" v-show="taskWrapper.tasks.length">
+    <div class="uploading-list" v-if="taskWrapper.tasks.length" v-drag>
       <v-expansion-panels v-model="uploadControlPanel">
         <v-expansion-panel>
-          <v-expansion-panel-title>Upload...</v-expansion-panel-title>
-          <v-expansion-panel-text style="max-height: 300px; overflow-y: auto">
+          <v-expansion-panel-title class="fz-14">Upload Control</v-expansion-panel-title>
+          <v-expansion-panel-text style="max-height: 300px; height: 300px; overflow: auto">
             <div v-for="(item, index) in taskWrapper.tasks" :key="index" class="py-2">
               <div class="upload-info al-c space-btw mb-2">
-                <span>{{ item.taskParams.Body.name }}</span>
-                <span>
+                <span
+                  class="d-ib fz-14"
+                  style="
+                    width: 100px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                  "
+                  >{{ item.taskParams.Body.name }}</span
+                >
+                <span class="fz-14">
+                  {{ getSize((item.taskParams.Body.size * item.progress) / 100) }} /
                   {{ getSize(item.taskParams.Body.size) }}
                 </span>
-                <span>
-                  {{ item.status }}
-                </span>
+
+                <v-btn variant="text" v-if="item.status == 5" @click="handleRetryUpload(item)">
+                  <v-icon icon="mdi-reload"></v-icon
+                ></v-btn>
               </div>
               <v-progress-linear
                 :model-value="item.progress"
-                color="primary"
+                :color="progressColor(item.status)"
                 rounded
               ></v-progress-linear>
             </div>
@@ -153,66 +116,96 @@
 </template>
 
 <script setup lang="ts">
-import bottomDetector from '../bottom-detector/bottom-detector.vue'
-import { ref, computed } from 'vue'
+import { ref, computed, watch, getCurrentInstance } from 'vue'
 import { useStore } from 'vuex'
-import { RootState } from '../../store/type'
+import type { RootState } from '../../store/type'
 import { Task, TaskWrapper } from './task'
 import { getSize } from '../../utils/index'
-import { ListPin } from '4everland-pinning/dist/types/core/type'
+// import type { ListPin, PinInfo } from '@4everland/upload-pin'
+import { SnackBarStatus } from '@/components/snack-bar/snack-bar'
+import type { ComponentInternalInstance } from 'vue'
+const { proxy } = getCurrentInstance() as ComponentInternalInstance
+const emit = defineEmits<{
+  (e: 'getList'): void
+}>()
+
 const store = useStore<RootState>()
 const bucketClient = computed(() => store.state.bucketClient)
 const pinningClient = computed(() => store.state.pinningClient)
 const showUploadDialog = ref(false)
-const showPinningDialog = ref(false)
 const tab = ref(1)
-const files = ref<File[]>(null)
+const files = ref<File[]>([])
 const cid = ref('')
 const pinName = ref('')
 
 const cidRef = ref()
 const pinNameRef = ref()
 const rules = {
-  required: (value) => !!value || 'Required.',
-  counter: (value) => value.length <= 30 || 'Max 30 characters'
+  required: (value: any) => !!value || 'Required.',
+  counter: (value: any) => value.length <= 30 || 'Max 30 characters'
 }
 const addPinLoading = ref(false)
-const pinningTasksLoading = ref(false)
-
-const loadingMore = ref(false)
-const finished = ref(false)
-const before = ref('')
-
 const uploadControlPanel = ref()
-let unsuccessPinList = ref<ListPin>({
-  results: [],
-  count: 0
-})
-let taskWrapper = ref(new TaskWrapper(10))
 
-// Upload Failed Tasks
-const uploadFailedTasks = computed(() => {
-  return taskWrapper.value.tasks.filter((it) => it.status == 5)
-})
+let taskWrapper = ref(new TaskWrapper(10))
 
 const uploadingTasks = computed(() => {
   return taskWrapper.value.tasks.filter((it) => it.status == 1 || it.status == 0)
 })
 
-const createUpload = (file: File) => {
-  let task = new Task(
-    bucketClient.value,
-    {
-      Bucket: store.state.sts.accessBucket,
-      Key: store.state.sts.folderPath + '/' + file.name,
-      Body: file,
-      ContentType: file.type
-    },
-    pinningClient.value
-  )
+const progressColor = (status: number) => {
+  switch (status) {
+    case 5:
+      return '#EF5459'
+    case 4:
+      return '#58BA2D'
+    case 3:
+      return '#58BA2D'
+    case 0:
+      return 'primary'
+    case 1:
+      return 'primary'
+    default:
+      return ''
+  }
+}
 
-  taskWrapper.value.pushTasks(task)
-  taskWrapper.value.progressTask()
+watch(uploadingTasks, (newVal, oldVal) => {
+  if (oldVal.length && newVal.length == 0) {
+    emit('getList')
+  }
+})
+const createUpload = async (file: File) => {
+  try {
+    let task = new Task(
+      bucketClient.value!,
+      {
+        Bucket: store.state.sts!.accessBucket,
+        Key: store.state.sts!.folderPath + '/' + file.name,
+        Body: file,
+        ContentType: file.type
+      },
+      pinningClient.value!
+    )
+
+    taskWrapper.value.pushTasks(task)
+    await taskWrapper.value.progressTask()
+  } catch (error) {
+    if (
+      error.name == 'InvalidAccessKeyId' ||
+      error.name == 'InvalidTokenId' ||
+      error.name == 'SignatureDoesNotMatch'
+    ) {
+      proxy!.$snackbar({
+        text: 'token is expired',
+        type: SnackBarStatus.DANGER
+      })
+      setTimeout(() => {
+        localStorage.clear()
+        location.reload()
+      }, 2000)
+    }
+  }
 }
 
 const handleUpload = () => {
@@ -223,6 +216,27 @@ const handleUpload = () => {
   files.value = []
   uploadControlPanel.value = 0
 }
+const handleRetryUpload = async (item: Task) => {
+  try {
+    item.status = 0
+    await taskWrapper.value.progressTask()
+  } catch (error) {
+    if (
+      error.name == 'InvalidAccessKeyId' ||
+      error.name == 'InvalidTokenId' ||
+      error.name == 'SignatureDoesNotMatch'
+    ) {
+      proxy!.$snackbar({
+        text: 'token is expired',
+        type: SnackBarStatus.DANGER
+      })
+      setTimeout(() => {
+        localStorage.clear()
+        location.reload()
+      }, 2000)
+    }
+  }
+}
 
 const handleAddPin = async () => {
   const pinNameValid = await pinNameRef.value.validate()
@@ -230,67 +244,43 @@ const handleAddPin = async () => {
   if (pinNameValid.length || cidValid.length) return
   addPinLoading.value = true
   try {
-    await pinningClient.value.addPin({
+    await pinningClient.value!.addPin({
       cid: cid.value,
       name: pinName.value
     })
     showUploadDialog.value = false
     // do something
-  } catch (error) {
+  } catch (error: any) {
     console.log(error)
+    proxy!.$snackbar({
+      text: error.error.details,
+      type: SnackBarStatus.DANGER
+    })
   }
   addPinLoading.value = false
 }
-
-const handleShowPinning = async () => {
-  showPinningDialog.value = true
-  // await getUnsuccessPinList()
-}
-const getUnsuccessPinList = async (isReplace: boolean = false) => {
-  pinningTasksLoading.value = true
-  loadingMore.value = true
-  try {
-    const data = await pinningClient.value.listPin({
-      status: 'queued,pinning,failed',
-      limit: 10
-    })
-    if (isReplace) {
-      unsuccessPinList.value.results.length = 0
-      finished.value = true
-    }
-    if (data.results.length) {
-      before.value = data.results[data.results.length - 1].created
-      finished.value = false
-    } else {
-      finished.value = true
-    }
-    unsuccessPinList.value.results.push(...data.results)
-  } catch (error) {
-    console.log(error)
-  }
-  pinningTasksLoading.value = false
-  loadingMore.value = true
-}
-
-const handleReload = () => {
-  before.value = ''
-  getUnsuccessPinList(true)
-}
-getUnsuccessPinList()
 </script>
 
 <style lang="scss" scoped>
 .upload-container {
   .uploading-list {
     width: 350px;
+    height: 48px;
+    z-index: 999;
     position: absolute;
     right: 20px;
-    bottom: 70px;
+    bottom: 360px;
     .upload-info {
       > span {
         display: block;
       }
     }
+  }
+}
+.no-data {
+  width: 100%;
+  img {
+    width: 40%;
   }
 }
 </style>

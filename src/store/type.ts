@@ -1,4 +1,5 @@
-import { AuthClient, BucketClient, PinningClient } from '4everland-pinning'
+// import { AuthClient, BucketClient, PinningClient } from '@4everland/upload-pin'
+import { AuthClient, BucketClient, PinningClient } from 'upload-pin'
 
 export interface verifyResult {
   accessBucket: string
