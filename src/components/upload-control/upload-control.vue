@@ -169,8 +169,11 @@ const progressColor = (status: number) => {
   }
 }
 
-watch(uploadingTasks, (newVal, oldVal) => {
-  if (oldVal.length && newVal.length == 0) {
+watch(uploadingTasks, () => {
+  const uploadTasks = taskWrapper.value.tasks.filter(
+    (it) => it.status == 1 || it.status == 0
+  ).length
+  if (uploadTasks == 0) {
     emit('getList')
   }
 })

@@ -215,8 +215,15 @@ const getList = async (isReplace: boolean = false) => {
 
     list.push(...data.results)
   } catch (error: any) {
+    let message = ''
+    console.log(error)
+    if (error.erorr && error.error.reason) {
+      message = error.error.reason + ' : ' + error.error.details
+    } else {
+      message = error.message
+    }
     proxy!.$snackbar({
-      text: error.error.reason + ' : ' + error.error.details,
+      text: message,
       type: SnackBarStatus.DANGER
     })
   }
