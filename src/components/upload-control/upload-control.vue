@@ -121,7 +121,6 @@ import { useStore } from 'vuex'
 import type { RootState } from '../../store/type'
 import { Task, TaskWrapper } from './task'
 import { getSize } from '../../utils/index'
-// import type { ListPin, PinInfo } from '@4everland/upload-pin'
 import { SnackBarStatus } from '@/components/snack-bar/snack-bar'
 import type { ComponentInternalInstance } from 'vue'
 const { proxy } = getCurrentInstance() as ComponentInternalInstance
@@ -190,12 +189,10 @@ const createUpload = async (file: File) => {
 
     taskWrapper.value.pushTasks(task)
     await taskWrapper.value.progressTask()
-  } catch (error) {
-    if (
-      error.name == 'InvalidAccessKeyId' ||
-      error.name == 'InvalidTokenId' ||
-      error.name == 'SignatureDoesNotMatch'
-    ) {
+  } catch (error: any) {
+    console.log(error.code)
+
+    if (error.code && error.code == 403) {
       proxy!.$snackbar({
         text: 'token is expired',
         type: SnackBarStatus.DANGER
@@ -204,6 +201,11 @@ const createUpload = async (file: File) => {
         localStorage.clear()
         location.reload()
       }, 2000)
+    } else {
+      proxy!.$snackbar({
+        text: error.message,
+        type: SnackBarStatus.DANGER
+      })
     }
   }
 }
@@ -220,12 +222,8 @@ const handleRetryUpload = async (item: Task) => {
   try {
     item.status = 0
     await taskWrapper.value.progressTask()
-  } catch (error) {
-    if (
-      error.name == 'InvalidAccessKeyId' ||
-      error.name == 'InvalidTokenId' ||
-      error.name == 'SignatureDoesNotMatch'
-    ) {
+  } catch (error: any) {
+    if (error.code && error.code == 403) {
       proxy!.$snackbar({
         text: 'token is expired',
         type: SnackBarStatus.DANGER
@@ -234,6 +232,11 @@ const handleRetryUpload = async (item: Task) => {
         localStorage.clear()
         location.reload()
       }, 2000)
+    } else {
+      proxy!.$snackbar({
+        text: error.message,
+        type: SnackBarStatus.DANGER
+      })
     }
   }
 }
@@ -249,6 +252,8 @@ const handleAddPin = async () => {
       name: pinName.value
     })
     showUploadDialog.value = false
+
+    emit('getList')
     // do something
   } catch (error: any) {
     console.log(error)

@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "4everland-pinning": "^1.0.10",
-    "@4everland/upload-pin": "^1.0.1",
+    "@4everland/upload-pin": "^1.0.2",
     "@soerenmartius/vue3-clipboard": "^0.1.2",
     "axios": "^1.5.0",
     "ethers": "^6.7.1",

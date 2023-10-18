@@ -43,3 +43,5 @@ app.use(VueClipboard)
 app.use(snackBar)
 app.use(installDirectives)
 app.mount('#app')
+
+store.dispatch('getProjectInfo')

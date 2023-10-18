@@ -92,7 +92,7 @@
             </li>
             <li>
               <span class="mr-3">URL:</span>
-              <span class="mr-2">{{ cutStr(httpUrl, 13, 6) }}</span>
+              <a class="mr-2" target="__blank" :href="httpUrl">{{ cutStr(httpUrl, 13, 6) }}</a>
               <v-icon
                 class="cursor-p"
                 size="18"
@@ -126,10 +126,8 @@ import unKnownImg from '../../assets/img/icon/unknow.svg'
 import { ref, reactive, getCurrentInstance } from 'vue'
 import { useStore } from 'vuex'
 import type { RootState } from '../../store/type'
-// import { BucketClient, PinningClient } from '@4everland/upload-pin'
-// import type { PinInfo } from '@4everland/upload-pin'
-import { BucketClient, PinningClient } from 'upload-pin'
-import type { PinInfo } from 'upload-pin'
+import { BucketClient, PinningClient } from '@4everland/upload-pin'
+import type { PinInfo } from '@4everland/upload-pin'
 import { getSize, cutStr } from '../../utils'
 import axios from 'axios'
 import { computed } from 'vue'
@@ -175,7 +173,7 @@ const selectItems = [
     value: 'pinned'
   },
   {
-    title: 'failed',
+    title: 'Failed',
     value: 'failed'
   }
 ]
@@ -201,7 +199,8 @@ const getList = async (isReplace: boolean = false) => {
     const data = await pinningClient.listPin({
       status: selectStatus.value,
       before: before.value,
-      name: searchKey.value
+      name: searchKey.value,
+      limit: 50
     })
     if (isReplace) {
       list.length = 0
@@ -215,8 +214,11 @@ const getList = async (isReplace: boolean = false) => {
     }
 
     list.push(...data.results)
-  } catch (error) {
-    console.log(error)
+  } catch (error: any) {
+    proxy!.$snackbar({
+      text: error.error.reason + ' : ' + error.error.details,
+      type: SnackBarStatus.DANGER
+    })
   }
   loadingMore.value = false
 }
@@ -224,13 +226,13 @@ const getList = async (isReplace: boolean = false) => {
 getList()
 
 const onInput = debounce(() => {
-  console.log(2222)
   before.value = ''
   getList(true)
 }, 300)
 
 const httpUrl = computed(() => {
-  return import.meta.env.VITE_GATEWAY_URL + curPinInfo.value?.pin.cid
+  const gateway = store.getters.projectIPFSGateway
+  return gateway + curPinInfo.value?.pin.cid
 })
 
 const previewType = computed(() => {
@@ -241,7 +243,7 @@ const previewType = computed(() => {
 })
 const previewUrl = computed(() => {
   if (/image/.test(fileType.value) || /video/.test(fileType.value)) {
-    return import.meta.env.VITE_GATEWAY_URL + curPinInfo.value?.pin.cid
+    return httpUrl.value
   }
   return unKnownImg
 })
@@ -259,7 +261,7 @@ const headObject = async (url: string) => {
 const handleClick = async (item: PinInfo) => {
   showDetail.value = true
   curPinInfo.value = item
-  await headObject(import.meta.env.VITE_GATEWAY_URL + item.pin.cid)
+  await headObject(store.getters.projectIPFSGateway + item.pin.cid)
 }
 
 const onSuccess = () => {
@@ -275,6 +277,10 @@ const onSuccess = () => {
   left: 0;
   top: 30px !important;
   bottom: initial !important;
+}
+a {
+  text-decoration: none;
+  color: #409eff;
 }
 .dashboard-container {
   width: 100%;

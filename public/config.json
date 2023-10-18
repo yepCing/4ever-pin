@@ -1,0 +1,48 @@
+{
+  "config": [
+    {
+       "name": "Website Name",
+       "options": [
+          {
+              "type":"text",
+              "key":"websiteName",
+              "value":"",
+              "placeholder":"Enter the website name"
+          }
+       ]
+    },
+     {
+       "name": "Logo",
+       "options": [
+          {
+              "type":"text",
+              "key":"logo",
+              "value": "",
+              "placeholder":"Enter the logo"
+          }
+       ]
+    },
+    {
+       "name": "Background",
+       "options": [
+          {
+              "type":"text",
+              "key":"background",
+              "value":"",
+              "placeholder":"Enter the Background"
+          }
+       ]
+    },
+    {
+       "name": "IPFS Gateway",
+       "options": [
+          {
+              "type":"text",
+              "key":"ipfsGateway",
+              "value":"",
+              "placeholder":"Enter the IPFS gateway,like https://ipfs.4everland.io/ipfs/"
+          }
+       ]
+    }
+  ]
+}

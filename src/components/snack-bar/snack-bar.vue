@@ -1,7 +1,7 @@
 <template>
   <div class="snack-bar-overlay">
     <div
-      class="snack-bar pa-3 ta-c"
+      class="snack-bar fz-14 pa-3 ta-c"
       @mouseover="handleMouseOver"
       @mouseout="handleMouseOut"
       :style="{ borderColor: borderColor, color: borderColor }"
@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed, ref, watch } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import gsap from 'gsap'
 const props = defineProps<{
   text: string
@@ -21,7 +21,7 @@ const props = defineProps<{
   onRemove: () => void
 }>()
 
-const timer = ref(null)
+const timer = ref<NodeJS.Timeout>()
 const borderColor = computed(() => {
   return props.type || '#000'
 })
@@ -67,7 +67,7 @@ const handleMouseOut = () => {
     position: fixed;
     z-index: 10001;
     max-width: 80%;
-    width: 300px;
+    min-width: 300px;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;

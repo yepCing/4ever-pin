@@ -1,7 +1,5 @@
-// import type { BucketClient, PinningClient } from '@4everland/upload-pin'
-// import type { PinInfo, UploadResult } from '@4everland/upload-pin'
-import type { BucketClient, PinningClient } from 'upload-pin'
-import type { PinInfo, UploadResult } from 'upload-pin'
+import type { BucketClient, PinningClient } from '@4everland/upload-pin'
+import type { PinInfo, UploadResult } from '@4everland/upload-pin'
 interface TaskParams {
   Bucket: string
   Key: string

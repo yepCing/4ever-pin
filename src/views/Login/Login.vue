@@ -1,7 +1,10 @@
 <template>
-  <div class="login-container al-c justify-center">
+  <div
+    class="login-container al-c justify-center"
+    :style="{ backgroundImage: 'url(' + backgroundUrl + ')' }"
+  >
     <div class="login-content">
-      <h3 class="mb-4 fz-30 fw-b">Welcome to 4ever Pin</h3>
+      <h3 class="mb-4 fz-30 fw-b">Welcome to {{ store.getters.projectName }}</h3>
       <div @click="handleConnect" class="al-c plateform f-center cursor-p">
         <img width="32" src="../../assets/img/icon/metamask.png" alt="" />
         <span class="ml-3 fz-16 fw-b"> Connect Your Wallet </span>
@@ -11,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { getCurrentInstance } from 'vue'
+import { getCurrentInstance, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import type { RootState } from '../../store/type'
@@ -20,6 +23,9 @@ import type { ComponentInternalInstance } from 'vue'
 const store = useStore<RootState>()
 const router = useRouter()
 const { proxy } = getCurrentInstance() as ComponentInternalInstance
+const backgroundUrl = computed(() => {
+  return store.getters.projectBackground
+})
 const handleConnect = async () => {
   try {
     await store.dispatch('initClient')
@@ -45,6 +51,9 @@ const handleConnect = async () => {
   width: 100%;
   height: 100%;
   background: rgba(140, 140, 161, 0.05);
+  background-image: url(../../assets/img/bg/background.png);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
   .login-content {
     text-align: center;
     .plateform {

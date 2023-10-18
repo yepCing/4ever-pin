@@ -1,10 +1,9 @@
 <template>
   <div class="header-container al-c space-btw">
     <div class="al-c">
-      <!-- <img width="40" src="" alt="" /> -->
-      <Avatar :diameter="30" :address="address"></Avatar>
-
-      <span class="fz-20 fw-b ml-2">4EVER Pin</span>
+      <img width="30" style="border-radius: 50%" :src="store.getters.projectLogo" alt="" />
+      <!-- <Avatar :diameter="30" :address="address"></Avatar> -->
+      <span class="fz-20 fw-b ml-2">{{ store.getters.projectName }}</span>
     </div>
     <v-menu open-on-hover>
       <template v-slot:activator="{ props }">
