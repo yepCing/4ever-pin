@@ -6,7 +6,7 @@
       <div class="al-c space-btw">
         <upload-control @get-list="onInput"></upload-control>
 
-        <div style="width: 500px" class="al-c">
+        <div style="width: 500px; color: #000" class="al-c">
           <v-select
             class="mr-5"
             density="compact"
@@ -292,6 +292,7 @@ a {
 .dashboard-container {
   width: 100%;
   height: 100%;
+  background: #fff;
   .dashboard-body {
     padding: 0 64px;
     .no-data {
@@ -315,6 +316,7 @@ a {
       border: 1px solid #ccc;
       border-radius: 4px;
       .info-list {
+        color: #000;
         li + li {
           margin-top: 20px;
         }

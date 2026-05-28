@@ -7,7 +7,7 @@
       <h3 class="mb-4 fz-30 fw-b">Welcome to {{ store.getters.projectName }}</h3>
       <div @click="handleConnect" class="al-c plateform f-center cursor-p">
         <img width="32" src="../../assets/img/icon/metamask.png" alt="" />
-        <span class="ml-3 fz-16 fw-b"> Connect Your Wallet </span>
+        <span class="ml-3 fz-16 fw-b" style="color: #000"> Connect Your Wallet </span>
       </div>
     </div>
   </div>

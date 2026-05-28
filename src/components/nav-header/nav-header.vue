@@ -3,7 +3,7 @@
     <div class="al-c">
       <img width="30" style="border-radius: 50%" :src="store.getters.projectLogo" alt="" />
       <!-- <Avatar :diameter="30" :address="address"></Avatar> -->
-      <span class="fz-20 fw-b ml-2">{{ store.getters.projectName }}</span>
+      <span class="fz-20 fw-b ml-2" style="color: #000">{{ store.getters.projectName }}</span>
     </div>
     <v-menu open-on-hover>
       <template v-slot:activator="{ props }">

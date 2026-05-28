@@ -190,9 +190,12 @@ const createUpload = async (file: File) => {
       pinningClient.value!
     )
 
+    console.log(store.state.sts!.folderPath + '/' + file.name)
+
     taskWrapper.value.pushTasks(task)
     await taskWrapper.value.progressTask()
   } catch (error: any) {
+    console.log(error)
     console.log(error.code)
 
     if (error.code && error.code == 403) {

@@ -32,21 +32,16 @@ const dragDirective = (app: App) => {
       el.addEventListener('mousedown', (ev: MouseEvent) => {
         x = ev.clientX
         y = ev.clientY
-        el.addEventListener('mousemove', move)
+        document.addEventListener('mousemove', move)
       })
       // mouseup unbind mousemove
       el.addEventListener('mouseup', (ev: MouseEvent) => {
         // console.log('mouse up')
         offsetLeft = el.offsetLeft
         offsetTop = el.offsetTop
-        el.removeEventListener('mousemove', move)
+        document.removeEventListener('mousemove', move)
       })
 
-      el.addEventListener('mouseout', () => {
-        offsetLeft = el.offsetLeft
-        offsetTop = el.offsetTop
-        el.removeEventListener('mousemove', move)
-      })
       window.addEventListener('resize', () => {
         getMaxLimit(el)
       })
